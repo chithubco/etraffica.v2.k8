@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etraffica-service-routing
+  namespace: etraffica
+  labels:
+    app: etraffica
+# Consumed ONLY by the api-gateway. Each <SERVICE>_SERVICE_URL tells the gateway to
+# PROXY that service's /api/v1/* routes to the given ClusterIP DNS name instead of
+# embedding the service in-process. The host:port here must match the corresponding
+# Service in services/<name>.yaml. (apps/services/common/service-cluster.ts)
+data:
+  IDENTITY_SERVICE_URL: "http://identity-service:4302"
+  VEHICLE_SERVICE_URL: "http://vehicle-service:4303"
+  VEHICLE_OFFENSE_SERVICE_URL: "http://vehicle-offense-service:4304"
+  PAYMENT_SERVICE_URL: "http://payment-service:4305"
+  VIOLATION_SCHEDULER_SERVICE_URL: "http://violation-scheduler-service:4306"
+  WORKFLOW_SERVICE_URL: "http://workflow-service:4307"
+  VEHICLE_WARNING_SERVICE_URL: "http://vehicle-warning-service:4308"
+  OFFENSE_CONTEST_SERVICE_URL: "http://offense-contest-service:4309"
+  WATCHLIST_SERVICE_URL: "http://watchlist-service:4310"
+  INTEGRATION_SERVICE_URL: "http://integration-service:4311"
+  SERVICE_HEALTH_SERVICE_URL: "http://service-health-service:4312"
+  INSTANCE_LOG_SERVICE_URL: "http://instance-log-service:4313"
+  DRIVERS_BEHAVIOUR_SERVICE_URL: "http://drivers-behaviour-service:4314"
+  CONGESTION_SERVICE_URL: "http://congestion-service:4315"
+  BROADCAST_SERVICE_URL: "http://broadcast-service:4316"
+  OUTCOME_SERVICE_URL: "http://outcome-service:4317"
+  CATALOG_SERVICE_URL: "http://catalog-service:4318"
+  ENFORCEMENT_SERVICE_URL: "http://enforcement-service:4319"
+  PAYMENTS_MEDIA_SERVICE_URL: "http://payments-media-service:4320"
+  OPERATIONS_SERVICE_URL: "http://operations-service:4321"
+  LEGACY_PARITY_SERVICE_URL: "http://legacy-parity-service:4322"

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicle-offense-service
+  namespace: etraffica
+  labels:
+    app: vehicle-offense-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vehicle-offense-service
+  template:
+    metadata:
+      labels:
+        app: vehicle-offense-service
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: vehicle-offense-service
+          image: 0680/etraffica.v2.vehicle-offense-service:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4304
+              name: http
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 4304
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 4304
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "192Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vehicle-offense-service
+  namespace: etraffica
+  labels:
+    app: vehicle-offense-service
+spec:
+  type: ClusterIP
+  selector:
+    app: vehicle-offense-service
+  ports:
+    - name: http
+      port: 4304
+      targetPort: 4304

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: violation-scheduler-service
+  namespace: etraffica
+  labels:
+    app: violation-scheduler-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: violation-scheduler-service
+  template:
+    metadata:
+      labels:
+        app: violation-scheduler-service
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: violation-scheduler-service
+          image: 0680/etraffica.v2.violation-scheduler-service:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4306
+              name: http
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 4306
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 4306
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "192Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: violation-scheduler-service
+  namespace: etraffica
+  labels:
+    app: violation-scheduler-service
+spec:
+  type: ClusterIP
+  selector:
+    app: violation-scheduler-service
+  ports:
+    - name: http
+      port: 4306
+      targetPort: 4306

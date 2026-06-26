@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: instance-log-service
+  namespace: etraffica
+  labels:
+    app: instance-log-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: instance-log-service
+  template:
+    metadata:
+      labels:
+        app: instance-log-service
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: instance-log-service
+          image: 0680/etraffica.v2.instance-log-service:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4313
+              name: http
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 4313
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 4313
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "192Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: instance-log-service
+  namespace: etraffica
+  labels:
+    app: instance-log-service
+spec:
+  type: ClusterIP
+  selector:
+    app: instance-log-service
+  ports:
+    - name: http
+      port: 4313
+      targetPort: 4313

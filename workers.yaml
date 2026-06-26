@@ -1,0 +1,181 @@
+# Background workers — pure RabbitMQ consumers. No HTTP port, so no Service and no
+# HTTP probe. Each image bakes its own start script (SERVICE_START_SCRIPT=worker:<x>).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-outbox
+  namespace: etraffica
+  labels:
+    app: worker-outbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-outbox
+  template:
+    metadata:
+      labels:
+        app: worker-outbox
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-outbox
+          image: 0680/etraffica.worker.outbox:26.06.26.01
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-notifications
+  namespace: etraffica
+  labels:
+    app: worker-notifications
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-notifications
+  template:
+    metadata:
+      labels:
+        app: worker-notifications
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-notifications
+          image: 0680/etraffica.worker.notifications:26.06.26.01
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-payments
+  namespace: etraffica
+  labels:
+    app: worker-payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-payments
+  template:
+    metadata:
+      labels:
+        app: worker-payments
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-payments
+          image: 0680/etraffica.worker.payments:26.06.26.01
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-workflow
+  namespace: etraffica
+  labels:
+    app: worker-workflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-workflow
+  template:
+    metadata:
+      labels:
+        app: worker-workflow
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-workflow
+          image: 0680/etraffica.worker.workflow:26.06.26.01
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-media
+  namespace: etraffica
+  labels:
+    app: worker-media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-media
+  template:
+    metadata:
+      labels:
+        app: worker-media
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-media
+          image: 0680/etraffica.worker.media:26.06.26.01
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"

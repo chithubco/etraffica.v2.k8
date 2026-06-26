@@ -1,0 +1,3 @@
+# Never commit the real secrets — copy secrets.yaml.example -> secrets.yaml and fill it in.
+secrets.yaml
+*.local.yaml

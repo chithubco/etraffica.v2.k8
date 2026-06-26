@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-health-service
+  namespace: etraffica
+  labels:
+    app: service-health-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: service-health-service
+  template:
+    metadata:
+      labels:
+        app: service-health-service
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: service-health-service
+          image: 0680/etraffica.v2.service-health-service:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4312
+              name: http
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 4312
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 4312
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "192Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-health-service
+  namespace: etraffica
+  labels:
+    app: service-health-service
+spec:
+  type: ClusterIP
+  selector:
+    app: service-health-service
+  ports:
+    - name: http
+      port: 4312
+      targetPort: 4312

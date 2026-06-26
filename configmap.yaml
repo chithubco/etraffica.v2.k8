@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: etraffica-config
+  namespace: etraffica
+  labels:
+    app: etraffica
+data:
+  NODE_ENV: "production"
+
+  # --- Persistence -------------------------------------------------------------
+  # IMPORTANT: in a split (multi-pod) deployment every service/worker MUST share a
+  # backing store. The local default `file` writes a per-pod JSON file and will NOT
+  # work across pods or replicas. Use postgres / mongodb / redis here and supply the
+  # connection strings via the etraffica-secrets Secret.
+  PERSISTENCE_MODE: "postgres"
+
+  APP_BASE_URL: "http://api-gateway:4300"
+  EXTERNAL_CONNECT_TIMEOUT_MS: "5000"
+
+  # --- Postgres (non-secret tuning; POSTGRES_URL/DATABASE_URL live in the Secret) ---
+  POSTGRES_STATE_TABLE: "etraffica_app_state"
+  POSTGRES_DOMAIN_REPOSITORIES: "enabled"
+  POSTGRES_DOMAIN_TABLE_PREFIX: "etraffica"
+  POSTGRES_OPERATIONAL_REPOSITORIES: "enabled"
+  POSTGRES_OPERATIONAL_TABLE_PREFIX: "etraffica"
+  POSTGRES_WORKER_REPOSITORIES: "enabled"
+  POSTGRES_WORKER_TABLE_PREFIX: "etraffica"
+
+  # --- MongoDB (MONGODB_URL lives in the Secret) -------------------------------
+  MONGODB_DATABASE: "etraffica"
+  MONGODB_STATE_COLLECTION: "app_state"
+
+  # --- Redis (REDIS_URL / REDIS_CACHE_URL live in the Secret) -------------------
+  REDIS_STATE_KEY: "etraffica:state"
+  REDIS_IDEMPOTENCY_PREFIX: "etraffica:idempotency:"
+  REDIS_RATE_LIMIT_PREFIX: "etraffica:rate:"
+
+  # --- RabbitMQ topology (RABBITMQ_URL / BROKER_URL live in the Secret) ---------
+  RABBITMQ_EVENTS_EXCHANGE: "etraffica.events"
+  RABBITMQ_EVENTS_QUEUE: "etraffica.events.audit"
+  RABBITMQ_EVENTS_ROUTING_KEY: "audit"
+  RABBITMQ_QUEUE_NOTIFICATION_DELIVERY: "etraffica.events.notification-delivery"
+  RABBITMQ_QUEUE_PAYMENT_RECONCILIATION: "etraffica.events.payment-reconciliation"
+  RABBITMQ_QUEUE_WORKFLOW_ACTIONS: "etraffica.events.workflow-actions"
+  RABBITMQ_QUEUE_MEDIA_PROCESSING: "etraffica.events.media-processing"
+
+  # --- Worker tuning -----------------------------------------------------------
+  WORKER_AUTO_START: "enabled"
+  WORKER_INTERVAL_MS: "15000"
+  WORKER_MAX_ATTEMPTS: "3"
+  WORKER_LEASE_TTL_MS: "60000"
+  WORKER_TASK_LOCK_MS: "120000"
+  WORKER_BATCH_SIZE: "25"
+  WORKER_CONCURRENCY: "1"
+  WORKER_RATE_LIMIT_PER_MINUTE: "0"
+  WORKER_PREFETCH: "5"
+  WORKER_OUTBOX_BATCH_SIZE: "25"
+  WORKER_OUTBOX_CONCURRENCY: "1"
+  WORKER_NOTIFICATION_DELIVERY_BATCH_SIZE: "25"
+  WORKER_NOTIFICATION_DELIVERY_CONCURRENCY: "2"
+  WORKER_PAYMENT_RECONCILIATION_BATCH_SIZE: "20"
+  WORKER_PAYMENT_RECONCILIATION_CONCURRENCY: "2"
+  WORKER_WORKFLOW_ACTIONS_BATCH_SIZE: "25"
+  WORKER_WORKFLOW_ACTIONS_CONCURRENCY: "2"
+  WORKER_MEDIA_PROCESSING_BATCH_SIZE: "10"
+  WORKER_MEDIA_PROCESSING_CONCURRENCY: "1"
+
+  # --- Auth (client id is non-secret; issuer URL + client secret in the Secret) ---
+  OIDC_CLIENT_ID: "etraffica-modern"
+
+  # --- Provider routing (non-secret selectors; keys/secrets in the Secret) ------
+  PAYMENT_PROVIDER_BASE_URL: "https://payments.sandbox.example.com"
+  PROVIDER_HTTP_TIMEOUT_MS: "5000"
+  PAYMENT_SETTLEMENT_PROVIDER: "local-settlement"
+  MEDIA_PROCESSING_PROVIDER: "local-media"
+  NOTIFICATION_PROVIDER_EMAIL: "smtp"
+  NOTIFICATION_PROVIDER_SMS: "sms-gateway"
+  NOTIFICATION_PROVIDER_PUSH: "push-gateway"
+  NOTIFICATION_PROVIDER_WEBHOOK: "webhook"

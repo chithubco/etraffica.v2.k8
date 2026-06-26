@@ -1,0 +1,62 @@
+# Static portal served by nginx (etraffica/static-portal.Dockerfile, listens on 80).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-website
+  namespace: etraffica
+  labels:
+    app: product-website
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: product-website
+  template:
+    metadata:
+      labels:
+        app: product-website
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: product-website
+          image: 0680/etraffica.product-website:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-website
+  namespace: etraffica
+  labels:
+    app: product-website
+spec:
+  type: ClusterIP
+  selector:
+    app: product-website
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

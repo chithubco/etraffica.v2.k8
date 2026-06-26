@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broadcast-service
+  namespace: etraffica
+  labels:
+    app: broadcast-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: broadcast-service
+  template:
+    metadata:
+      labels:
+        app: broadcast-service
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: broadcast-service
+          image: 0680/etraffica.v2.broadcast-service:26.06.26.01
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4316
+              name: http
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 4316
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 4316
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "192Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broadcast-service
+  namespace: etraffica
+  labels:
+    app: broadcast-service
+spec:
+  type: ClusterIP
+  selector:
+    app: broadcast-service
+  ports:
+    - name: http
+      port: 4316
+      targetPort: 4316

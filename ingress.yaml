@@ -1,0 +1,83 @@
+# NGINX ingress + cert-manager TLS for eTraffica v2.
+#
+# Requires in the cluster:
+#   - an NGINX ingress controller (provides ingressClassName: nginx)
+#   - cert-manager + the letsencrypt-prod ClusterIssuer (see cert-manager-issuer.yaml)
+#
+# Domain: etraffica.app. Point each host's DNS A/AAAA record at the ingress
+# controller's external LoadBalancer IP. cert-manager will then issue the
+# etraffica-tls certificate automatically once DNS resolves.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: etraffica-ingress
+  namespace: etraffica
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.etraffica.app
+        - app.etraffica.app
+        - admin.etraffica.app
+        - violator.etraffica.app
+        - etraffica.app
+      secretName: etraffica-tls
+  rules:
+    # API gateway (REST API + proxies /api/v1/* to the split services)
+    - host: api.etraffica.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 4300
+    # Next.js app (serves /admin, /violator, /product, /_next/*)
+    - host: app.etraffica.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 3000
+    # Static admin portal (nginx)
+    - host: admin.etraffica.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-web
+                port:
+                  number: 80
+    # Static violator portal (nginx)
+    - host: violator.etraffica.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: violator-web
+                port:
+                  number: 80
+    # Marketing site at the apex (nginx)
+    - host: etraffica.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: product-website
+                port:
+                  number: 80
