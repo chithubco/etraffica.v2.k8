@@ -1,0 +1,282 @@
+# Local-only, single-replica data stores for the docker-desktop cluster.
+# NOT for production: emptyDir volumes are ephemeral (data is lost if the pod
+# is rescheduled), no auth hardening, no resource limits beyond modest requests.
+# Service names are pinned (postgres/mongo/redis/rabbitmq) so the connection
+# URLs in etraffica-secrets resolve via cluster DNS.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: etraffica
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app: etraffica
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: datastore
+        app.kubernetes.io/part-of: etraffica
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: etraffica
+            - name: POSTGRES_USER
+              value: etraffica
+            - name: POSTGRES_PASSWORD
+              value: etraffica
+            # postgres:16 refuses to init on a non-empty data dir; use a subdir.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U etraffica -d etraffica"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U etraffica -d etraffica"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: postgres
+spec:
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: mongo
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: etraffica
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mongo
+  template:
+    metadata:
+      labels:
+        app: etraffica
+        app.kubernetes.io/name: mongo
+        app.kubernetes.io/component: datastore
+        app.kubernetes.io/part-of: etraffica
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+              name: mongo
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mongosh --quiet --eval 'db.adminCommand(\"ping\")'"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: mongo
+spec:
+  selector:
+    app.kubernetes.io/name: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+      name: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: etraffica
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  template:
+    metadata:
+      labels:
+        app: etraffica
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: datastore
+        app.kubernetes.io/part-of: etraffica
+    spec:
+      containers:
+        - name: redis
+          image: redis:7
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "redis-cli ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 15
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: redis
+spec:
+  selector:
+    app.kubernetes.io/name: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: datastore
+    app.kubernetes.io/part-of: etraffica
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: etraffica
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/component: datastore
+        app.kubernetes.io/part-of: etraffica
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672
+              name: amqp
+            - containerPort: 15672
+              name: management
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "rabbitmq-diagnostics -q check_port_connectivity"]
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          livenessProbe:
+            tcpSocket:
+              port: 5672
+            initialDelaySeconds: 40
+            periodSeconds: 20
+      # RabbitMQ takes ~20-40s to boot; give it room before liveness kicks in.
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: etraffica
+  labels:
+    app: etraffica
+    app.kubernetes.io/name: rabbitmq
+spec:
+  selector:
+    app.kubernetes.io/name: rabbitmq
+  ports:
+    - port: 5672
+      targetPort: 5672
+      name: amqp
+    - port: 15672
+      targetPort: 15672
+      name: management
