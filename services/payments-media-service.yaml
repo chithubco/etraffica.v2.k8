@@ -19,7 +19,7 @@ spec:
         - name: regcred
       containers:
         - name: payments-media-service
-          image: 0680/etraffica.v2.payments-media-service:26.06.26.01
+          image: 0680/etraffica.v2.payments-media-service:30.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 4320

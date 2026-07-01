@@ -31,3 +31,6 @@ data:
   PAYMENTS_MEDIA_SERVICE_URL: "http://payments-media-service:4320"
   OPERATIONS_SERVICE_URL: "http://operations-service:4321"
   LEGACY_PARITY_SERVICE_URL: "http://legacy-parity-service:4322"
+  FEEDBACK_SERVICE_URL: "http://feedback-service:4324"
+  LEARNING_SERVICE_URL: "http://learning-service:4325"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:4326"

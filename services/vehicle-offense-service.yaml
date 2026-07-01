@@ -19,7 +19,7 @@ spec:
         - name: regcred
       containers:
         - name: vehicle-offense-service
-          image: 0680/etraffica.v2.vehicle-offense-service:26.06.26.01
+          image: 0680/etraffica.v2.vehicle-offense-service:30.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 4304

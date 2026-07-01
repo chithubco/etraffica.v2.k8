@@ -19,7 +19,7 @@ spec:
         - name: regcred
       containers:
         - name: instance-log-service
-          image: 0680/etraffica.v2.instance-log-service:26.06.26.01
+          image: 0680/etraffica.v2.instance-log-service:30.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 4313

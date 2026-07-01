@@ -22,11 +22,17 @@ spec:
         - name: regcred
       containers:
         - name: core-service
-          image: 0680/etraffica.api.core:26.06.26.01
+          image: 0680/etraffica.api.core:29.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 4323
               name: http
+          env:
+            # Composite runtime embeds every split service; give V8 headroom so it
+            # doesn't OOM parsing its startup config (default old-space cap is too low
+            # for the 512Mi request tier).
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=896"
           envFrom:
             - configMapRef:
                 name: etraffica-config
@@ -47,10 +53,10 @@ spec:
           resources:
             requests:
               cpu: "50m"
-              memory: "192Mi"
+              memory: "384Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "1Gi"
 ---
 apiVersion: v1
 kind: Service

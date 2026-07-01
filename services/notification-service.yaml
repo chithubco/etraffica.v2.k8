@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: workflow-service
+  name: notification-service
   namespace: etraffica
   labels:
-    app: workflow-service
+    app: notification-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: workflow-service
+      app: notification-service
   template:
     metadata:
       labels:
-        app: workflow-service
+        app: notification-service
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
-        - name: workflow-service
-          image: 0680/etraffica.v2.workflow-service:30.06.26.01
+        - name: notification-service
+          image: 0680/etraffica.v2.notification-service:30.06.26.01
           imagePullPolicy: Always
           ports:
-            - containerPort: 4307
+            - containerPort: 4326
               name: http
           envFrom:
             - configMapRef:
@@ -32,13 +32,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /api/v1/health/live
-              port: 4307
+              port: 4326
             initialDelaySeconds: 20
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/v1/health/ready
-              port: 4307
+              port: 4326
             initialDelaySeconds: 5
             periodSeconds: 5
           resources:
@@ -52,15 +52,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: workflow-service
+  name: notification-service
   namespace: etraffica
   labels:
-    app: workflow-service
+    app: notification-service
 spec:
   type: ClusterIP
   selector:
-    app: workflow-service
+    app: notification-service
   ports:
     - name: http
-      port: 4307
-      targetPort: 4307
+      port: 4326
+      targetPort: 4326

@@ -1,11 +1,14 @@
 # eTraffica v2 — Kubernetes manifests
 
 Plain-YAML Kubernetes manifests for the **eTraffica v2** platform, deployed as **full split
-microservices**: the API gateway + 21 routed backend services + an optional legacy `core-service`
+microservices**: the API gateway + 24 routed backend services + an optional legacy `core-service`
 + 5 workers + 4 frontends, each as its own Deployment/Service in the `etraffica` namespace, fronted
 by an NGINX Ingress with cert-manager TLS.
 
-Images come from Docker Hub (`0680/*`) and are pinned to tag **`26.06.26.01`** (`DD.MM.YY.NN`).
+Images come from Docker Hub (`0680/*`) and are pinned to dated tags (`DD.MM.YY.NN`). The current
+pins are **`30.06.26.01`** for the `etraffica.v2.*` backend services + api-gateway (including the
+`feedback` / `learning` / `notification` services) and **`29.06.26.01`** for the frontends, workers,
+and legacy `core-service` (their newest build).
 
 > Modelled on the conventions of the `chithubco/emudee.k8` sample repo.
 
@@ -14,7 +17,7 @@ Images come from Docker Hub (`0680/*`) and are pinned to tag **`26.06.26.01`** (
 ```
 namespace.yaml                   Namespace: etraffica
 configmap.yaml                   etraffica-config           — shared non-secret env (all pods)
-service-routing-configmap.yaml   etraffica-service-routing  — 21 *_SERVICE_URL (gateway only)
+service-routing-configmap.yaml   etraffica-service-routing  — 24 *_SERVICE_URL (gateway only)
 secrets.yaml.example             etraffica-secrets template — copy to secrets.yaml, fill in
 api-gateway.yaml                 Deployment + Service (port 4300)
 services/<name>.yaml             one Deployment + ClusterIP Service per backend service
@@ -32,7 +35,7 @@ The gateway image is a unified runtime that *can* embed every service in-process
 `/api/v1/*` to the matching ClusterIP Service instead of embedding it. If you remove a routing entry,
 the gateway will silently run that service itself again.
 
-Each backend service binds a **fixed port (4302–4323)** and exposes `/api/v1/health/live` and
+Each backend service binds a **fixed port (4302–4326)** and exposes `/api/v1/health/live` and
 `/api/v1/health/ready` (used for the probes). Workers are pure RabbitMQ consumers — no port.
 
 ## Ingress / TLS routing
@@ -137,7 +140,7 @@ curl -s "https://hub.docker.com/v2/repositories/0680/etraffica.v2.api-gateway/ta
   | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{console.log(JSON.parse(d).results.map(t=>t.name).join('\n'))})"
 ```
 
-Update the `:26.06.26.01` tags in the manifests to the new tag, then:
+Update the dated tags in the manifests to the new tag, then:
 
 ```bash
 kubectl apply -f services/ -f api-gateway.yaml -f workers.yaml -f frontends/
