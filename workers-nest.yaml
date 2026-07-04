@@ -1,0 +1,58 @@
+# NestJS-migration event-relay worker (Phase N, event-wiring CONSUMER side). Drains the RabbitMQ
+# catch-all queue (etraffica.domain.events.relay, bound `#`) and applies domain events emitted by
+# the migrated services (emitDomainEvent) into the shared store, so a foreign write that a
+# not-yet-owning migrated service DROPPED is materialized by the owning service during the
+# strangler transition. Idempotent by eventId, DLQ after maxAttempts (packages/rmq-kit relay core).
+#
+# No HTTP port -> no Service, no HTTP probe. AMQP-gated: with AMQP_URL unset the worker exits
+# cleanly (nothing to relay), so it is safe to deploy before any cutover. Uses the full-repo
+# api-gateway image with the command overridden to the relay worker script.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-rmq-relay
+  namespace: etraffica
+  labels:
+    app: worker-rmq-relay
+    variant: nest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: worker-rmq-relay
+  template:
+    metadata:
+      labels:
+        app: worker-rmq-relay
+        variant: nest
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: worker-rmq-relay
+          image: 0680/etraffica.v2.api-gateway:latest
+          imagePullPolicy: Always
+          command: ["npm", "run", "worker:rmq-relay"]
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          env:
+            # The relay applies into the shared store (PERSISTENCE_MODE=postgres via configmap +
+            # DATABASE_URL via secret). AMQP_URL is the broker it consumes from.
+            - name: AMQP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: etraffica-secrets
+                  key: RABBITMQ_URL
+                  optional: true
+            - name: RELAY_MAX_ATTEMPTS
+              value: "3"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "192Mi"
+            limits:
+              cpu: "250m"
+              memory: "512Mi"
