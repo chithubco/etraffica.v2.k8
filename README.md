@@ -1,14 +1,14 @@
 # eTraffica v2 — Kubernetes manifests
 
 Plain-YAML Kubernetes manifests for the **eTraffica v2** platform, deployed as **full split
-microservices**: the API gateway + 24 routed backend services + an optional legacy `core-service`
-+ 5 workers + 4 frontends, each as its own Deployment/Service in the `etraffica` namespace, fronted
-by an NGINX Ingress with cert-manager TLS.
+microservices**: the API gateway + 24 routed backend services + 5 workers + 4 frontends, each as
+its own Deployment/Service in the `etraffica` namespace, fronted by an NGINX Ingress with
+cert-manager TLS.
 
 Images come from Docker Hub (`0680/*`) and are pinned to dated tags (`DD.MM.YY.NN`). The current
 pins are **`30.06.26.01`** for the `etraffica.v2.*` backend services + api-gateway (including the
-`feedback` / `learning` / `notification` services) and **`29.06.26.01`** for the frontends, workers,
-and legacy `core-service` (their newest build).
+`feedback` / `learning` / `notification` services) and **`29.06.26.01`** for the frontends and
+workers (their newest build).
 
 > Modelled on the conventions of the `chithubco/emudee.k8` sample repo.
 
@@ -109,9 +109,6 @@ Or apply everything at once (after creating `secrets.yaml` and editing `ingress.
 kubectl apply -f . -R
 ```
 
-> `core-service` is optional (legacy composite). Skip it with
-> `kubectl delete -f services/core-service.yaml` or simply don't apply that file.
-
 ## Verify
 
 ```bash
@@ -159,7 +156,6 @@ kubectl rollout restart deployment -n etraffica
 |---|---|---|
 | api-gateway | `0680/etraffica.v2.api-gateway` | 4300 |
 | 21 routed services | `0680/etraffica.v2.<name>` | 4302–4322 |
-| core-service (legacy, optional) | `0680/etraffica.api.core` | 4323 |
 | worker-outbox / -notifications / -payments / -workflow / -media | `0680/etraffica.worker.<x>` | — |
 | web | `0680/etraffica.web` | 3000 |
 | admin-web / violator-web / product-website | `0680/etraffica.<name>` | 80 |
