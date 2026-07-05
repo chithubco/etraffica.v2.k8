@@ -46,6 +46,10 @@ spec:
               value: "http://api-gateway:4300"
             - name: IDENTITY_SERVICE_URL
               value: "http://api-gateway:4300"
+            # payments-media forwards processed provider callbacks to operations (the
+            # certification cross-service join); harmless for the other services.
+            - name: OPERATIONS_SERVICE_URL
+              value: "http://operations-service-nest:4321"
             # Domain-event producer (emitDomainEvent) — fail-soft when absent (no emit, write dropped).
             - name: AMQP_URL
               valueFrom:
