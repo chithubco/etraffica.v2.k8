@@ -78,3 +78,17 @@ data:
   NOTIFICATION_PROVIDER_SMS: "sms-gateway"
   NOTIFICATION_PROVIDER_PUSH: "push-gateway"
   NOTIFICATION_PROVIDER_WEBHOOK: "webhook"
+
+  # --- feedback-service: EmuDee work-item conversion (non-secret tuning; ---------
+  #     EMUDEE_API_KEY lives in the Secret. Empty key => conversion returns 503.) --
+  EMUDEE_API_BASE_URL: "https://api.emudee.app"
+  EMUDEE_CREATE_TASK_PATH: "/api/tasks/api/submit"
+  EMUDEE_TIMEOUT_MS: "30000"
+  EMUDEE_MAX_RETRIES: "2"
+
+  # --- notification-service: channel defaults (SMTP host/user/pass + SMS key ----
+  #     live in the Secret; email/SMS stay disabled while those are placeholders) --
+  NOTIFICATION_SMTP_PORT: "587"
+  NOTIFICATION_EMAIL_FROM: "no-reply@etraffica.local"
+  NOTIFICATION_EMAIL_FROM_NAME: "eTraffica"
+  NOTIFICATION_SMS_SENDER: "eTraffica"

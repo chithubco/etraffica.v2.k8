@@ -20,7 +20,7 @@ spec:
         - name: regcred
       containers:
         - name: violator-web
-          image: 0680/etraffica.violator-web:26.06.26.01
+          image: 0680/etraffica.violator-web:29.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 80

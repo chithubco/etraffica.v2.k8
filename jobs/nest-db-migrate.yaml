@@ -1,0 +1,61 @@
+# Phase-N DB migration Job. Each migrated NestJS+TypeORM service owns its own Postgres schema and
+# tables; `seed:<svc>-service-nest` runs its TypeORM migrations (CREATE SCHEMA + tables + indexes)
+# and idempotent seed rows. This Job runs all 24 seeds ONCE against the shared DATABASE_URL before
+# the nest Deployments start (the services do NOT auto-migrate on boot). Re-runnable (idempotent
+# migrations + upsert seeds).
+#
+#   kubectl apply -f jobs/nest-db-migrate.yaml
+#   kubectl -n etraffica wait --for=condition=complete job/nest-db-migrate --timeout=600s
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nest-db-migrate
+  namespace: etraffica
+  labels:
+    app: nest-db-migrate
+    variant: nest
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: nest-db-migrate
+        variant: nest
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: nest-db-migrate
+          image: 0680/etraffica.v2.api-gateway:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: etraffica-config
+            - secretRef:
+                name: etraffica-secrets
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              for svc in \
+                identity-service vehicle-service vehicle-offense-service payment-service \
+                violation-scheduler-service workflow-service vehicle-warning-service \
+                offense-contest-service watchlist-service integration-service \
+                service-health-service instance-log-service drivers-behaviour-service \
+                congestion-service broadcast-service outcome-service catalog-service \
+                enforcement-service payments-media-service operations-service \
+                usage-analytics-service feedback-service learning-service notification-service; do
+                echo "==> seed:${svc}-nest"
+                npm run "seed:${svc}-nest"
+              done
+              echo "all nest schemas migrated + seeded"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "384Mi"
+            limits:
+              cpu: "1000m"
+              memory: "768Mi"

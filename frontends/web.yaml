@@ -20,7 +20,7 @@ spec:
         - name: regcred
       containers:
         - name: web
-          image: 0680/etraffica.web:26.06.26.01
+          image: 0680/etraffica.web:29.06.26.01
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

@@ -21,7 +21,7 @@ spec:
         - name: regcred
       containers:
         - name: worker-outbox
-          image: 0680/etraffica.worker.outbox:26.06.26.01
+          image: 0680/etraffica.worker.outbox:29.06.26.01
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -57,7 +57,7 @@ spec:
         - name: regcred
       containers:
         - name: worker-notifications
-          image: 0680/etraffica.worker.notifications:26.06.26.01
+          image: 0680/etraffica.worker.notifications:29.06.26.01
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -93,7 +93,7 @@ spec:
         - name: regcred
       containers:
         - name: worker-payments
-          image: 0680/etraffica.worker.payments:26.06.26.01
+          image: 0680/etraffica.worker.payments:29.06.26.01
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -129,7 +129,7 @@ spec:
         - name: regcred
       containers:
         - name: worker-workflow
-          image: 0680/etraffica.worker.workflow:26.06.26.01
+          image: 0680/etraffica.worker.workflow:29.06.26.01
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
@@ -165,7 +165,7 @@ spec:
         - name: regcred
       containers:
         - name: worker-media
-          image: 0680/etraffica.worker.media:26.06.26.01
+          image: 0680/etraffica.worker.media:29.06.26.01
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
